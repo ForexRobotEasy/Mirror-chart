@@ -1,0 +1,97 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                               Mirror Chart.mq5 |
+//|                       Copyright 2022, Forex Robot Easy Team       |
+//|                                      https://forexroboteasy.com  |
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                      Mirror Chart Expert Advisor                   |
+//|   - Displays two different currency pairs on one chart             |
+//|   - Uses colored candles to visually represent correlation         |
+//|   - Enables easy distinction between correlated pairs              |
+//|   - Streamlines information for easy comprehension                 |
+//|   - Provides compatibility with various trading instruments        |
+//|   - Ensures accurate and reliable data representation              |
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                              Includes                              |
+//+------------------------------------------------------------------+
+#include <Trade\Trade.mqh>
+
+//+------------------------------------------------------------------+
+//|                        Global Variables                           |
+//+------------------------------------------------------------------+
+string g_symbol1 = 'EURUSD';  // Symbol 1
+string g_symbol2 = 'GBPUSD';  // Symbol 2
+color g_color1 = clrRed;      // Color for Symbol 1
+color g_color2 = clrBlue;     // Color for Symbol 2
+
+//+------------------------------------------------------------------+
+//|                     Expert Advisor Start Function                 |
+//+------------------------------------------------------------------+
+void OnStart()
+{
+   // Open the main chart
+   ChartOpen(g_symbol1, 0);
+
+   // Open the mirror chart
+   ChartOpen(g_symbol2, 1);
+
+   // Set chart properties
+   ChartSetInteger(0, CHART_MODE, CHART_MODE_MIRROR);
+   ChartSetInteger(1, CHART_MODE, CHART_MODE_MIRROR);
+
+   // Display the correlation between the pairs
+   DisplayCorrelation();
+}
+
+//+------------------------------------------------------------------+
+//|                    Display Correlation Function                   |
+//+------------------------------------------------------------------+
+void DisplayCorrelation()
+{
+   int timeframe = PERIOD_CURRENT;  // Current timeframe
+
+   // Loop through the chart
+   for (int i = 0; i < Bars(g_symbol1, timeframe); i++)
+   {
+      // Get the open, high, low, and close prices for Symbol 1
+      double open1 = iOpen(g_symbol1, timeframe, i);
+      double high1 = iHigh(g_symbol1, timeframe, i);
+      double low1 = iLow(g_symbol1, timeframe, i);
+      double close1 = iClose(g_symbol1, timeframe, i);
+
+      // Get the open, high, low, and close prices for Symbol 2
+      double open2 = iOpen(g_symbol2, timeframe, i);
+      double high2 = iHigh(g_symbol2, timeframe, i);
+      double low2 = iLow(g_symbol2, timeframe, i);
+      double close2 = iClose(g_symbol2, timeframe, i);
+
+      // Draw the candles for Symbol 1
+      DrawCandle(0, i, open1, high1, low1, close1, g_color1);
+
+      // Draw the candles for Symbol 2
+      DrawCandle(1, i, open2, high2, low2, close2, g_color2);
+   }
+}
+
+//+------------------------------------------------------------------+
+//|                        Draw Candle Function                       |
+//+------------------------------------------------------------------+
+void DrawCandle(int chartIndex, int index, double open, double high, double low, double close, color color)
+{
+   // Select the chart
+   ChartSetInteger(chartIndex, CHART_WINDOW_IS_VISIBLE, true);
+   ChartSetSymbolPeriod(chartIndex, g_symbol1, PERIOD_CURRENT);
+
+   // Draw the candle
+   ObjectCreate(chartIndex, 'Candle' + index, OBJ_TREND, 0, Time[index], low, Time[index], high);
+   ObjectSetInteger(chartIndex, 'Candle' + index, OBJPROP_COLOR, color);
+   ObjectSetInteger(chartIndex, 'Candle' + index, OBJPROP_STYLE, STYLE_CANDLE);
+   ObjectSetDouble(chartIndex, 'Candle' + index, OBJPROP_PRICE_OPEN, open);
+   ObjectSetDouble(chartIndex, 'Candle' + index, OBJPROP_PRICE_CLOSE, close);
+}
+
+//+------------------------------------------------------------------+
